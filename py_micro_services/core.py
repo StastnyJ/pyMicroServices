@@ -86,7 +86,7 @@ def delete(path: str):
 class PyMicroserviceRouter:
     _router: APIRouter = None
 
-    def __init__(self, service):
+    def __init__(self, service: PyMicroservice):
         self._service = service
         self._register_routes()
 
