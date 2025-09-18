@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "py-micro-services"
-version = "0.1.0"
+version = "0.2.1"
 description = "Simple toolset for implementing microservices architecture with Fast API"
 authors = [
     { name="Jakub Stastny", email="xstastnyj@gmail.com" }

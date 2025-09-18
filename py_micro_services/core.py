@@ -7,6 +7,7 @@ from typing import Dict, Any, List
 import threading
 import jwt
 import dotenv
+import os
         
 class PyMicroservicesConfig(BaseModel):
     service_name: str
@@ -98,7 +99,7 @@ def auth(roles: List[str]| None = None):
 
             try:
                 dotenv.load_dotenv()
-                payload = jwt.decode(token.split(" ")[1], key=dotenv.get_key("JWT_SECRET_KEY"), algorithms=["HS256"])
+                payload = jwt.decode(token.split(" ")[1], key=os.getenv("JWT_SECRET_KEY"), algorithms=["HS256"])
                 self.user_id = payload.get("userId")
                 self.user_roles = payload.get("roles")
                 if not self.user_id:
