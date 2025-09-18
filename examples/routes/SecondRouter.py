@@ -3,7 +3,7 @@ from fastapi import Request
 
 class SecondRouter(PyMicroserviceRouter):
     @get("/ping")
-    async def ping(self, request: Request) -> str:
+    async def ping(self) -> str:
         return "second router - pong"
     
     @auth(["admin"])
