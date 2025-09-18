@@ -1,10 +1,12 @@
 from pydantic import BaseModel, Field
 from functools import wraps
-from fastapi import APIRouter
+from fastapi import APIRouter, Request, HTTPException, status, Depends
 import json
 import requests
-from typing import Dict, Any
+from typing import Dict, Any, List
 import threading
+import jwt
+import dotenv
         
 class PyMicroservicesConfig(BaseModel):
     service_name: str
@@ -80,6 +82,36 @@ def delete(path: str):
     def decorator(func):
         func._route_info = ("DELETE", path)
         return func
+    return decorator
+
+
+
+def auth(roles: List[str]| None = None):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(self, *args, **kwargs):
+            request: Request = kwargs["request"]  # injected by _create_endpoint
+
+            token = request.cookies.get("Authorization")
+            if not token or not token.startswith("Bearer "):
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid token")
+
+            try:
+                dotenv.load_dotenv()
+                payload = jwt.decode(token.split(" ")[1], key=dotenv.get_key("JWT_SECRET_KEY"), algorithms=["HS256"])
+                self.user_id = payload.get("userId")
+                self.user_roles = payload.get("roles")
+                if not self.user_id:
+                    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
+                if roles and len(roles) > 0:
+                    if not any(role in self.user_roles for role in roles):
+                        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+            except jwt.PyJWTError:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token verification failed")
+
+            return await func(self, *args, **kwargs)
+
+        return wrapper
     return decorator
 
 
